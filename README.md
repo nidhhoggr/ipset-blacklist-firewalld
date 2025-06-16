@@ -25,7 +25,7 @@ sudo apt-get install iprange
 ### Install Script
 ```bash
 sudo curl -o /usr/local/bin/ipset-blacklist-firewalld.sh \
-  https://raw.githubusercontent.com/nidhhoggr/ipset-blacklist-firewalld/master/ipset-blacklist-firewalld.sh
+  https://raw.githubusercontent.com/nidhhoggr/ipset-blacklist-firewalld/develop/ipset-blacklist-firewalld.sh
 sudo chmod +x /usr/local/bin/ipset-blacklist-firewalld.sh
 ```
 
@@ -33,7 +33,7 @@ sudo chmod +x /usr/local/bin/ipset-blacklist-firewalld.sh
 Copy the example config:
 ```bash
 sudo curl -o /etc/ipset-blacklist-firewalld.conf \
-  https://raw.githubusercontent.com/nidhhoggr/ipset-blacklist-firewalld/main/ipset-blacklist-firewalld.conf
+  https://raw.githubusercontent.com/nidhhoggr/ipset-blacklist-firewalld/develop/ipset-blacklist-firewalld.conf
 ```
 
 ### Config Options (`/etc/ipset-blacklist-firewalld.conf`)
@@ -127,6 +127,8 @@ sudo systemctl enable --now ipset-blacklist.timer
    sudo ipset add blacklist 1.1.1.1
    ping -c 3 1.1.1.1  # Should fail
    ```
+
+4. Still stuck? See [advanced troubleshooting](https://github.com/nidhhoggr/ipset-blacklist-firewalld/blob/develop/troubleshooting.md)
 
 ### Performance Tips
 ```ini
