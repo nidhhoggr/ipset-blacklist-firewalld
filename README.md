@@ -1,66 +1,139 @@
-ipset-blacklist-firewalld
-===============
+# IPset Blacklist for Firewalld
 
-A Bash shell script which uses firewall-cmd to ban a large number of IP addresses published in IP blacklists. firewalld ipset uses a hashtable to store/fetch IP addresses and thus the IP lookup is a lot (!) faster than thousands of sequentially parsed iptables ban rules.
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)  
+**Atomic IP blocking with zero downtime** using ipsets and firewalld. Supports IPv4/IPv6 and CIDR optimization.
 
-This script is borrowed and modified from [ipset-blacklist](https://github.com/trick77/ipset-blacklist) to use firewalld and its built-in ipset implementation.
+## 🔥 Features
+- **Zero-downtime updates** via atomic IPset swapping
+- **IPv4/IPv6 dual-stack** support
+- **CIDR merging** with `iprange` (optional)
+- **Whitelist** for false positives
+- **Firewalld integration** with rich rules
+- **Configurable** timeout and max elements
 
-## Quick start for Debian/Ubuntu based installations
-1. wget -O /usr/local/sbin/update-blacklist.sh https://raw.githubusercontent.com/joe-at-startupmedia/ipset-blacklist-firewalld/master/update-blacklist.sh
-1. chmod +x /usr/local/sbin/update-blacklist.sh
-1. mkdir -p /etc/ipset-blacklist-firewalld ; wget -O /etc/ipset-blacklist-firewalld/ipset-blacklist-firewalld.conf https://raw.githubusercontent.com/joe-at-startupmedia/ipset-blacklist-firewalld/master/ipset-blacklist-firewalld.conf
-1. Modify ipset-blacklist-firewalld.conf according to your needs. Per default, the blacklisted IP addresses will be saved to /etc/ipset-blacklist-firewalld/ip-blacklist.restore
-1. Auto-update the blacklist using a cron job
+## 📦 Installation
 
-## First run, create the list
-to generate the /etc/ipset-blacklist-firewalld/ip-blacklist.list
-```
-/usr/local/sbin/update-blacklist.sh /etc/ipset-blacklist-firewalld/ipset-blacklist-firewalld.conf
-```
+### Dependencies
+```bash
+# Required
+sudo apt-get install ipset firewalld curl
 
-## iptables filter rule
-```
-# Enable blacklists
-firewall-cmd --permanent --ipset=blacklist --add-entries-from-file=/etc/ipset-blacklist-firewalld/ip-blacklist.list
-firewall-cmd --reload
-```
-Make sure to run this snippet in a firewall script or just insert it to /etc/rc.local.
-
-## Cron job
-In order to auto-update the blacklist, copy the following code into /etc/cron.d/update-blacklist. Don't update the list too often or some blacklist providers will ban your IP address. Once a day should be OK though.
-```
-PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
-MAILTO=root
-33 23 * * *      root /usr/local/sbin/update-blacklist.sh /etc/ipset-blacklist-firewalld/ipset-blacklist-firewalld.conf
+# Recommended for CIDR optimization
+sudo apt-get install iprange
 ```
 
-## Check for dropped packets
-Using iptables, you can check how many packets got dropped using the blacklist:
-
-```
-drfalken@wopr:~# iptables -L INPUT -v --line-numbers
-Chain INPUT (policy DROP 60 packets, 17733 bytes)
-num   pkts bytes target            prot opt in  out source   destination
-1       15  1349 DROP              all  --  any any anywhere anywhere     match-set blacklist src
-2        0     0 fail2ban-vsftpd   tcp  --  any any anywhere anywhere     multiport dports ftp,ftp-data,ftps,ftps-data
-3      912 69233 fail2ban-ssh-ddos tcp  --  any any anywhere anywhere     multiport dports ssh
-4      912 69233 fail2ban-ssh      tcp  --  any any anywhere anywhere     multiport dports ssh
+### Install Script
+```bash
+sudo curl -o /usr/local/bin/ipset-blacklist-firewalld.sh \
+  https://raw.githubusercontent.com/nidhhoggr/ipset-blacklist-firewalld/master/ipset-blacklist-firewalld.sh
+sudo chmod +x /usr/local/bin/ipset-blacklist-firewalld.sh
 ```
 
-## Modify the blacklists you want to use
-Edit the BLACKLIST array in /etc/ipset-blacklist-firewalld/ipset-blacklist-firewalld.conf to add or remove blacklists, or use it to add your own blacklists.
+## ⚙️ Configuration
+Copy the example config:
+```bash
+sudo curl -o /etc/ipset-blacklist-firewalld.conf \
+  https://raw.githubusercontent.com/nidhhoggr/ipset-blacklist-firewalld/main/ipset-blacklist-firewalld.conf
 ```
-BLACKLISTS=(
-"http://www.mysite.me/files/mycustomblacklist.txt" # Your personal blacklist
-"http://www.projecthoneypot.org/list_of_ips.php?t=d&rss=1" # Project Honey Pot Directory of Dictionary Attacker IPs
-# I don't want this: "http://www.openbl.org/lists/base.txt"  # OpenBL.org 30 day List
+
+### Config Options (`/etc/ipset-blacklist-firewalld.conf`)
+```ini
+# IPv4 Blacklists (URLs or local files)
+BLOCKLIST_URLS=(
+  "https://lists.blocklist.de/lists/all.txt"
+  "file:///path/to/local-list.txt"
 )
-```
-If you for some reason want to ban all IP addresses from a certain country, have a look at [IPverse.net's](http://ipverse.net/ipblocks/data/countries/) aggregated IP lists which you can simply add to the BLACKLISTS variable. For a ton of spam and malware related blacklists, check out this github repo: https://github.com/firehol/blocklist-ipsets
 
-## Remove the firewall
+# IPv6 Blacklists (optional)
+BLOCKLIST_V6_URLS=(
+  "https://www.team-cymru.org/Services/Bogons/fullbogons-ipv6.txt"
+)
+
+# Whitelist (IPs/CIDRs to exclude)
+WHITELIST=( "192.168.1.0/24" "10.0.0.1" )
+WHITELIST_V6=( "2001:db8::/32" )
+
+# Advanced
+IPSET_NAME="blacklist"
+IPSET_TIMEOUT="86400"  # 24h in seconds
+MAXELEM="65536"       # Max IPs/CIDRs
 ```
-firewall-cmd --permanent --delete-ipset=blacklist
-firewall-cmd --zone=drop --remove-source=ipset:blacklist
-firewall-cmd --reload
+
+## 🚀 Usage
+```bash
+# Dry-run (test config)
+sudo ipset-blacklist-firewalld.sh --dry-run
+
+# Run update
+sudo ipset-blacklist-firewalld.sh
+
+# Custom config location
+sudo ipset-blacklist-firewalld.sh --config /path/to/config.conf
 ```
+
+## 🕵️‍♂️ Verification
+```bash
+# Check active IPset
+sudo ipset list blacklist | head -n20
+
+# Test if IP is blocked (should timeout)
+ping -c 3 1.1.1.1
+
+# View firewall logs
+sudo journalctl -u firewalld -f | grep DROP
+```
+
+## 🔄 Automation
+### Systemd Service/Timer
+```bash
+# Service file (/etc/systemd/system/ipset-blacklist.service)
+[Unit]
+Description=IPset Blacklist Update
+After=network.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/ipset-blacklist-firewalld.sh
+
+# Timer file (/etc/systemd/system/ipset-blacklist.timer)
+[Unit]
+Description=Daily IPset Update
+
+[Timer]
+OnCalendar=daily
+Persistent=true
+
+[Install]
+WantedBy=timers.target
+```
+
+Enable with:
+```bash
+sudo systemctl enable --now ipset-blacklist.timer
+```
+
+## 🐛 Troubleshooting
+### IPs Not Blocked?
+1. Verify firewalld rule exists:
+   ```bash
+   sudo firewall-cmd --list-rich-rules | grep ipset
+   ```
+2. Check kernel module:
+   ```bash
+   lsmod | grep xt_set || sudo modprobe xt_set
+   ```
+3. Test raw IPset blocking:
+   ```bash
+   sudo ipset add blacklist 1.1.1.1
+   ping -c 3 1.1.1.1  # Should fail
+   ```
+
+### Performance Tips
+```ini
+# For large lists (>50k IPs)
+MAXELEM="131072"
+IPSET_TIMEOUT="43200"  # 12h
+```
+
+## 📜 License
+MIT © nidhhoggr
