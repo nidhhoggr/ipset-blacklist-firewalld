@@ -1,0 +1,4 @@
+[[generic]]
+name = "markdown"
+enabled = true
+files = [ "README.md" ]

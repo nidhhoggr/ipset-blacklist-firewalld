@@ -1,5 +1,7 @@
 # IPset Blacklist for Firewalld
 
+Version: v2.0.0-alpha.1
+
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)  
 **Atomic IP blocking with zero downtime** using ipsets and firewalld. Supports IPv4/IPv6 and CIDR optimization.
 
