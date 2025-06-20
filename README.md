@@ -39,13 +39,13 @@ sudo curl -o /etc/ipset-blacklist-firewalld.conf \
 ### Config Options (`/etc/ipset-blacklist-firewalld.conf`)
 ```ini
 # IPv4 Blacklists (URLs or local files)
-BLOCKLIST_URLS=(
+BLACKLIST_URLS=(
   "https://lists.blocklist.de/lists/all.txt"
   "file:///path/to/local-list.txt"
 )
 
 # IPv6 Blacklists (optional)
-BLOCKLIST_V6_URLS=(
+BLACKLIST_V6_URLS=(
   "https://www.team-cymru.org/Services/Bogons/fullbogons-ipv6.txt"
 )
 
