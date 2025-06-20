@@ -5,7 +5,7 @@
 
 ## Version
 ```
-v2.0.0-alpha.3
+v2.0.0-alpha.4
 ```
 
 ## 🔥 Features
