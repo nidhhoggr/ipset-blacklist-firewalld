@@ -29,9 +29,9 @@ sudo apt-get install iprange
 
 ### Install Script
 ```bash
-sudo curl -o /usr/local/bin/ipset-blacklist-firewalld.sh \
-  https://raw.githubusercontent.com/nidhhoggr/ipset-blacklist-firewalld/master/ipset-blacklist-firewalld.sh
-sudo chmod +x /usr/local/bin/ipset-blacklist-firewalld.sh
+sudo curl -o /usr/local/bin/update-blacklist.sh \
+  https://raw.githubusercontent.com/nidhhoggr/ipset-blacklist-firewalld/master/update-blacklist.sh
+sudo chmod +x /usr/local/bin/update-blacklist.sh
 ```
 
 ## ⚙️ Configuration
@@ -67,13 +67,13 @@ MAXELEM="65536"       # Max IPs/CIDRs
 ## 🚀 Usage
 ```bash
 # Dry-run (test config)
-sudo ipset-blacklist-firewalld.sh --dry-run
+sudo update-blacklist.sh --dry-run
 
 # Run update
-sudo ipset-blacklist-firewalld.sh
+sudo update-blacklist.sh
 
 # Custom config location
-sudo ipset-blacklist-firewalld.sh --config /path/to/config.conf
+sudo update-blacklist.sh --config /path/to/config.conf
 ```
 
 ## 🕵️‍♂️ Verification
@@ -98,7 +98,7 @@ After=network.target
 
 [Service]
 Type=oneshot
-ExecStart=/usr/local/bin/ipset-blacklist-firewalld.sh
+ExecStart=/usr/local/bin/update-blacklist.sh
 
 # Timer file (/etc/systemd/system/ipset-blacklist.timer)
 [Unit]
